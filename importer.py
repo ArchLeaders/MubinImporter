@@ -1,8 +1,6 @@
-import sys
-import os
-
 import bpy
 import traceback
+import time
 from pathlib import Path
 from .io.system import Data
 from .io.oead import OpenOead
@@ -102,6 +100,46 @@ def import_actor(actor: dict, mod_folder: str):
         # If the "deleted" material already exists, assign that material
         # Otherwise, create a new material with the botw shader
 
+    for child in armature.children:
+        # Import material
+        imported_mat = child.data.materials[0]
+
+        # Break if no material exists
+        if imported_mat is None:
+            break
+
+        # Get name
+        name = imported_mat.name
+
+        # Get base color
+        base_color = None
+        for node in imported_mat.node_tree.nodes:
+            if node.label == 'Base Color':
+                base_color = node.image
+                break
+
+        # Delete imported
+        bpy.data.materials.remove(imported_mat)
+
+        # Get material
+        if base_color is not None:
+            bpy.ops.wm.append(filename='MAT', directory=str(Data.data_dir).replace("\\", "/") + '/shader.blend\\Material\\')
+            mat = bpy.data.materials.get('MAT')
+            mat.name = name
+            for node in mat.node_tree.nodes:
+                if node.label == 'Base Color':
+                    node.image = base_color
+                    break
+        else:
+            bpy.ops.wm.append(filename='MAT_GRAY', directory=str(Data.data_dir).replace("\\", "/") + '/shader.blend\\Material\\')
+            mat = bpy.data.materials.get('MAT_GRAY')
+            mat.name = name
+        
+        if child.data.materials:
+            child.data.materials[0] = mat
+        else:
+            child.data.materials.append(mat)
+
     # Rename armature
     armature.name = f"{actor['UnitConfigName']} ({actor['HashId']})"
 
@@ -122,6 +160,7 @@ def import_mubin(mubin :Path, context):
         num = range(i + 1)
 
     if data.type == 'BYML' and data.sub_type == 'MUBIN':
+        start_time = time.time()
         for actor in data.content['Objs']:
             try:
                 if str(actor["UnitConfigName"]).endswith('_Far'):
@@ -149,3 +188,9 @@ def import_mubin(mubin :Path, context):
                     import_actor(actor, f'{content}..\\')
             except:
                 print(f'Could not import {actor["UnitConfigName"]}\n{traceback.format_exc()}')
+                if input() == 'exit':
+                    return
+
+        end_time = time.time()
+        sec = end_time - start_time
+        print(f'\nCompleted in {sec} seconds.')
