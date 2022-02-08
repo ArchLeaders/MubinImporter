@@ -19,7 +19,7 @@ class Data:
         """Caches an actor from an actorpack file"""
 
         # Check for existing entry
-        if actorname.name in data.cache:
+        if actorname.name in Data.cache:
             return
 
         # Look for actorpack
