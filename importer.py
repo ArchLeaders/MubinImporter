@@ -1,5 +1,8 @@
+import sys
+import os
+
 import bpy
-import math
+import traceback
 from pathlib import Path
 from .io.system import Data
 from .io.oead import OpenOead
@@ -34,12 +37,14 @@ def import_actor(actor: dict, mod_folder: str):
 
     # Actor not found
     else:
-        # print(f'A model for {name}: {actor["HashId"]} could not be found.')
+        print(f'A model for {name}: {actor["HashId"]} could not be found.')
         return
 
     # Import DAE
     bpy.ops.wm.collada_import(filepath=dae_file)
     armature = bpy.data.objects["Armature"]
+    armature.hide_render = True
+    armature.hide_viewport = True
 
     # Set the transform
     location = actor['Translate']
@@ -88,17 +93,23 @@ def import_actor(actor: dict, mod_folder: str):
             bone.location = location
             bone.scale = scale
             bone.rotation_euler = rotate
-
-            print(bone.rotation_euler)
-            print(rotate)
     else:
         print('Imported armature could not be found!')
         return
 
-    # Rename armature (Could result in issues)
+    # Loop 'Root' children
+        # Delete imported materials
+        # If the "deleted" material already exists, assign that material
+        # Otherwise, create a new material with the botw shader
+
+    # Rename armature
     armature.name = f"{actor['UnitConfigName']} ({actor['HashId']})"
 
-def import_mubin(mubin :Path):
+    # return complete
+    print(f'Imported {actor["UnitConfigName"]}: {actor["HashId"]} successfully.')
+    return
+
+def import_mubin(mubin :Path, context):
     data = OpenOead.from_path(mubin)
 
     content = ''
@@ -113,6 +124,28 @@ def import_mubin(mubin :Path):
     if data.type == 'BYML' and data.sub_type == 'MUBIN':
         for actor in data.content['Objs']:
             try:
-                import_actor(actor, f'{content}..\\')
+                if str(actor["UnitConfigName"]).endswith('_Far'):
+                    # Create Far LOD collection
+                    if 'Far LOD' not in context.blend_data.collections:
+                        collection = context.blend_data.collections.new("Far LOD")
+                        context.scene.collection.children.link(collection)
+
+                    # Set context
+                    print(context.view_layer.layer_collection.children)
+                    context.view_layer.active_layer_collection = context.view_layer.layer_collection.children["Far LOD"]
+
+                    # Import actor
+                    import_actor(actor, f'{content}..\\')
+                else:
+                    # Create Far LOD collection
+                    if 'Actors' not in context.blend_data.collections:
+                        collection = context.blend_data.collections.new("Actors")
+                        context.scene.collection.children.link(collection)
+
+                    # Set context
+                    context.view_layer.active_layer_collection = context.view_layer.layer_collection.children["Actors"]
+
+                    # Import actor
+                    import_actor(actor, f'{content}..\\')
             except:
-                print(f'Could not import {actor["UnitConfigName"]}')
+                print(f'Could not import {actor["UnitConfigName"]}\n{traceback.format_exc()}')
