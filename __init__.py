@@ -11,8 +11,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from .io.oead import OpenOead
-from pathlib import Path
+import bpy
+from .operators import IMPORT_SCENE_OT_mubin
 
 bl_info = {
     "name" : "Mubin Importer",
@@ -26,15 +26,9 @@ bl_info = {
 }
 
 def register():
-
-    # Test crap and stuff
-    data = OpenOead.from_path(Path('D:\\A-1_Static.mubin'))
-
-    if data.type == 'BYML' and data.sub_type == 'MUBIN':
-        for obj in data.content['Objs']:
-            print(obj['UnitConfigName'])
-
+    bpy.utils.register_class(IMPORT_SCENE_OT_mubin)
     ...
 
 def unregister():
+    bpy.utils.unregister_class(IMPORT_SCENE_OT_mubin)
     ...
