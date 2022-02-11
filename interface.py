@@ -22,6 +22,9 @@ class IMPORT_MUBIN_SCENE_OT_smubin(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         if Path(self.filepath).is_file() and Path(self.filepath).suffix == '.mubin' or '.smubin':
+            if not Path(f'{Data.data_dir}\\shader.blend').is_file():
+                self.import_shader = False
+                
             import_mubin(Path(self.filepath), context, self.import_shader)
 
         return {'FINISHED'}
