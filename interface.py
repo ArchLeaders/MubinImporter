@@ -24,13 +24,13 @@ class IMPORT_MUBIN_SCENE_OT_smubin(bpy.types.Operator, ImportHelper):
         if Path(self.filepath).is_file() and Path(self.filepath).suffix == '.mubin' or '.smubin':
             if not Path(f'{Data.data_dir}\\shader.blend').is_file():
                 self.import_shader = False
-                
+
             import_mubin(Path(self.filepath), context, self.import_shader)
 
         return {'FINISHED'}
 
 class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator, ImportHelper):
-    """Installs the Mubin Importer dependicies."""
+    """Installs the Mubin Importer dependencies."""
     bl_idname = 'mubin_importer.deps'
     bl_label = 'Install Dependencies'
 
@@ -42,7 +42,6 @@ class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator, ImportHelper):
 
         # Set app data information
         print('Setting up configuration...')
-        os.makedirs(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer\\')
         config = Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer\\config.json')
         config_data = { 'data_dir': self.filename }
 
@@ -78,7 +77,23 @@ class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator, ImportHelper):
         os.makedirs(f'{Data.data_dir}\\cache')
         Path(f'{Data.data_dir}\\cache.json').write_bytes(json.dumps({}))
 
+        # print initializing
+        Data.init()
+
         return {'FINISHED'}
 
-class PANEL_smth:
-    ...
+class TOOL_PT_MubinImporter(bpy.types.Panel):
+    bl_idname = "TOOL_PT_MubinImporter"
+    bl_category = "Tool"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_context = "objectmode"
+    bl_label = "Mubin Importer"
+
+    def draw(self, context):
+        self.layout.operator('mubin_importer.scene')
+
+        try:
+            Data.init()
+        except:
+            self.layout.operator('mubin_importer.deps')
