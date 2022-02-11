@@ -9,9 +9,9 @@ from pathlib import Path
 from .importer import import_mubin
 from .io.system import Data
 
-class IMPORT_SCENE_OT_mubin(bpy.types.Operator, ImportError):
+class IMPORT_MUBIN_SCENE_OT_smubin(bpy.types.Operator, ImportHelper):
     """Imports a map unit (mubin) file."""
-    bl_idname = 'import_scene.mubin'
+    bl_idname = 'mubin_importer.scene'
     bl_label = 'Import Mubin'
 
     filter_glob: StringProperty( default='*.mubin;*smubin', options={'HIDDEN'} )
@@ -23,16 +23,19 @@ class IMPORT_SCENE_OT_mubin(bpy.types.Operator, ImportError):
 
         return {'FINISHED'}
 
-class OT_oead(bpy.types.Operator):
-    """Installs oead inside Blenders python install."""
-    bl_idname = 'mubin_importer.install.deps'
+class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator):
+    """Installs the Mubin Importer dependicies."""
+    bl_idname = 'mubin_importer.deps'
     bl_label = 'Install Dependencies'
 
     def execute(self, context):
-        subprocess.run(f'{Data.data_dir}\\lib\\ModelExtracter.exe')
-        shutil.move(f'{Data.data_dir}\\lib\\export',f'{Data.data_dir}\\exported')
-
         python_exe = os.path.join(sys.prefix, 'bin', 'python.exe')
         subprocess.call([python_exe, "-m", "pip", "install", "oead"])
 
+        subprocess.run(f'{Data.data_dir}\\lib\\ModelExtracter.exe')
+        shutil.move(f'.\\export', f'{Data.data_dir}\\exported')
+
         return {'FINISHED'}
+
+class PANEL_smth:
+    ...
