@@ -12,7 +12,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import bpy
-from .interface import IMPORT_MUBIN_DEPS_OT_install, IMPORT_MUBIN_SCENE_OT_smubin
+from .interface import IMPORT_MUBIN_DEPS_OT_install, IMPORT_MUBIN_SCENE_OT_smubin, TOOL_PT_MubinImporter
 
 bl_info = {
     "name" : "Mubin Importer",
@@ -25,12 +25,16 @@ bl_info = {
     "category" : "Generic"
 }
 
+classes = [
+    IMPORT_MUBIN_DEPS_OT_install,
+    IMPORT_MUBIN_SCENE_OT_smubin,
+    TOOL_PT_MubinImporter,
+]
+
 def register():
-    bpy.utils.register_class(IMPORT_MUBIN_DEPS_OT_install)
-    bpy.utils.register_class(IMPORT_MUBIN_SCENE_OT_smubin)
-    ...
+    for cls in classes:
+        bpy.utils.register_class(cls)
 
 def unregister():
-    bpy.utils.unregister_class(IMPORT_MUBIN_DEPS_OT_install)
-    bpy.utils.unregister_class(IMPORT_MUBIN_SCENE_OT_smubin)
-    ...
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
