@@ -1,3 +1,4 @@
+from functools import cache
 import os
 import json
 import subprocess
@@ -7,14 +8,19 @@ from pathlib import Path
 class Data:
     """Cached actors"""
 
-    data_dir = json.loads(Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer\\config.json').read_text())['data_dir']
+    data_dir = ''
     """Path to the storage directory"""
 
-    exported: dict = json.loads(Path(f'{data_dir}\\exported.json').read_text())
+    exported = {}
     """Dictionary of exported actors"""
 
-    cache: dict = json.loads(Path(f'{data_dir}\\cache.json').read_text())
+    cache = {}
     """Dictionary of cached actors"""
+
+    def init():
+        Data.data_dir = json.loads(Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer\\config.json').read_text())['data_dir']
+        Data.exported = json.loads(Path(f'{Data.data_dir}\\exported.json').read_text())
+        Data.cache = json.loads(Path(f'{Data.data_dir}\\cache.json').read_text())
 
     def cache_actor(actorname, mod_dir) -> dict:
         """Caches an actor from an actorpack file"""
