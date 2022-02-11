@@ -1,6 +1,10 @@
+*.blend
+error.txt
+cache.json
+exported.json
 bin/
 obj/
+lib/
 .vs/
 __pycache__/
 __package__/
-error.txt
