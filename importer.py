@@ -9,16 +9,11 @@ cache = Data.cache
 data_dir = Data.data_dir
 exported = Data.exported
 
-def import_actor(actor: dict, mod_folder: str):
+def import_actor(actor: dict, mod_folder: str, import_shader: bool = False):
     """Imports a mubin actor entry using the cached models and relative sbfres files."""
 
     name = actor['UnitConfigName']
     dae_file = ''
-
-    try:
-        print(f'{data_dir}\\exported\\{exported[name]["BfresName"]}\\{exported[name]["ModelName"]}.dae')
-    except:
-        print('N/A')
 
     # Vanilla actor
     if name in exported:
@@ -80,65 +75,73 @@ def import_actor(actor: dict, mod_folder: str):
             ]
 
     # Set transforms
+    bone = None
     if armature.type == 'ARMATURE':
-        try:
-            bone = armature.pose.bones['Root']
-        except:
-            bone = armature.pose.bones['Model']
+        for child_bone in armature.pose.bones:
+            if child_bone.name is 'Root':
+                bone = child_bone
+                break
+            elif child_bone.name is 'Model':
+                bone = child_bone
+                break
+            else:
+                bone = child_bone
+                break
+
 
         bone.rotation_mode = 'XYZ'
         if bone is not None: 
             bone.location = location
             bone.scale = scale
             bone.rotation_euler = rotate
+        else:
+            print('Root bone could not be found!')
+            return
     else:
         print('Imported armature could not be found!')
         return
+        
+    # Import Shader
+    if import_shader:
+        for child in armature.children:
+            # Import material
+            imported_mat = child.data.materials[0]
 
-    # Loop 'Root' children
-        # Delete imported materials
-        # If the "deleted" material already exists, assign that material
-        # Otherwise, create a new material with the botw shader
-
-    for child in armature.children:
-        # Import material
-        imported_mat = child.data.materials[0]
-
-        # Break if no material exists
-        if imported_mat is None:
-            break
-
-        # Get name
-        name = imported_mat.name
-
-        # Get base color
-        base_color = None
-        for node in imported_mat.node_tree.nodes:
-            if node.label == 'Base Color':
-                base_color = node.image
+            # Break if no material exists
+            if imported_mat is None:
                 break
 
-        # Delete imported
-        bpy.data.materials.remove(imported_mat)
+            # Get name
+            name = imported_mat.name
 
-        # Get material
-        if base_color is not None:
-            bpy.ops.wm.append(filename='MAT', directory=str(Data.data_dir).replace("\\", "/") + '/shader.blend\\Material\\')
-            mat = bpy.data.materials.get('MAT')
-            mat.name = name
-            for node in mat.node_tree.nodes:
+            # Get base color
+            base_color = None
+            for node in imported_mat.node_tree.nodes:
                 if node.label == 'Base Color':
-                    node.image = base_color
+                    base_color = node.image
                     break
-        else:
-            bpy.ops.wm.append(filename='MAT_GRAY', directory=str(Data.data_dir).replace("\\", "/") + '/shader.blend\\Material\\')
-            mat = bpy.data.materials.get('MAT_GRAY')
-            mat.name = name
-        
-        if child.data.materials:
-            child.data.materials[0] = mat
-        else:
-            child.data.materials.append(mat)
+
+            # Delete imported
+            bpy.data.materials.remove(imported_mat)
+
+            # Get material
+            if base_color is not None:
+                bpy.ops.wm.append(filename='MAT', directory=str(Data.data_dir).replace("\\", "/") + '/shader.blend\\Material\\')
+                mat = bpy.data.materials.get('MAT')
+                mat.name = name
+                for node in mat.node_tree.nodes:
+                    if node.label == 'Base Color':
+                        node.image = base_color
+                        break
+            else:
+                bpy.ops.wm.append(filename='MAT_GRAY', directory=str(Data.data_dir).replace("\\", "/") + '/shader.blend\\Material\\')
+                mat = bpy.data.materials.get('MAT_GRAY')
+                mat.name = name
+            
+            if child.data.materials:
+                child.data.materials[0] = mat
+            else:
+                child.data.materials.append(mat)
 
     # Rename armature
     armature.name = f"{actor['UnitConfigName']} ({actor['HashId']})"
@@ -147,7 +150,7 @@ def import_actor(actor: dict, mod_folder: str):
     print(f'Imported {actor["UnitConfigName"]}: {actor["HashId"]} successfully.')
     return
 
-def import_mubin(mubin :Path, context):
+def import_mubin(mubin :Path, context, import_shader: bool = False):
     data = OpenOead.from_path(mubin)
 
     content = ''
@@ -174,7 +177,7 @@ def import_mubin(mubin :Path, context):
                     context.view_layer.active_layer_collection = context.view_layer.layer_collection.children["Far LOD"]
 
                     # Import actor
-                    import_actor(actor, f'{content}..\\')
+                    import_actor(actor, f'{content}..\\', import_shader=import_shader)
                 else:
                     # Create Far LOD collection
                     if 'Actors' not in context.blend_data.collections:
@@ -185,11 +188,18 @@ def import_mubin(mubin :Path, context):
                     context.view_layer.active_layer_collection = context.view_layer.layer_collection.children["Actors"]
 
                     # Import actor
-                    import_actor(actor, f'{content}..\\')
+                    import_actor(actor, f'{content}..\\', import_shader=import_shader)
             except:
                 print(f'Could not import {actor["UnitConfigName"]}\n{traceback.format_exc()}')
-                if input() == 'exit':
-                    return
+
+                error = ''
+                if Path('error.txt').is_file():
+                    error = Path('error.txt').read_text()
+
+                Path('error.txt').write_text(f'{error}Could not import {actor["UnitConfigName"]}\n{traceback.format_exc()}\n\n{"- " * 30}\n\n')
+
+                # if input() == 'exit':
+                #     return
 
         end_time = time.time()
         sec = end_time - start_time
