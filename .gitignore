@@ -4,7 +4,8 @@ cache.json
 exported.json
 bin/
 obj/
-lib/
+data/
 .vs/
+.git/
 __pycache__/
 __package__/
