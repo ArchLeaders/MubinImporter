@@ -1,3 +1,4 @@
+import os
 import json
 import subprocess
 from .oead import OpenOead
@@ -6,7 +7,7 @@ from pathlib import Path
 class Data:
     """Cached actors"""
 
-    data_dir = json.loads(Path(f'.\\config.json').read_text())['data_dir']
+    data_dir = json.loads(Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer\\config.json').read_text())['data_dir']
     """Path to the storage directory"""
 
     exported: dict = json.loads(Path(f'{data_dir}\\exported.json').read_text())
