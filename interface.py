@@ -22,6 +22,9 @@ class IMPORT_MUBIN_SCENE_OT_smubin(bpy.types.Operator, ImportHelper):
     import_shader: BoolProperty('Import objects with the BotW Shader by Moonling')
 
     def execute(self, context):
+        # Show console window
+        bpy.ops.wm.console_toggle()
+
         if Path(self.filepath).is_file() and Path(self.filepath).suffix == '.mubin' or '.smubin':
             if not Path(f'{Data.data_dir}\\shader.blend').is_file():
                 self.import_shader = False
@@ -80,6 +83,8 @@ class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator, ExportHelper):
         # Write cache file
         os.makedirs(f'{Data.data_dir}\\cache')
         Path(f'{Data.data_dir}\\cache.json').write_bytes(json.dumps({}))
+
+        print('Install Complete! Please restart Blender before continuing.')
 
         return {'FINISHED'}
 
