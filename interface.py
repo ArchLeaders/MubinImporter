@@ -1,4 +1,3 @@
-from tabnanny import filename_only
 import bpy
 import json
 import os
@@ -30,6 +29,8 @@ class IMPORT_MUBIN_SCENE_OT_smubin(bpy.types.Operator, ImportHelper):
                 self.import_shader = False
 
             import_mubin(Path(self.filepath), context, self.import_shader)
+
+        bpy.ops.wm.console_toggle()
 
         return {'FINISHED'}
 
@@ -72,7 +73,7 @@ class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator, ExportHelper):
 
         # Download json data
         print('Downloading json data...')
-        file_bytes = requests.get('https://github.com/ArchLeaders/MubinImporter/raw/master/dist/extracted.bin')
+        file_bytes = requests.get('https://raw.githubusercontent.com/ArchLeaders/MubinImporter/master/dist/exported.bin')
         Path(f'{Data.data_dir}\\extracted.json').write_bytes(file_bytes.content)
 
         # Export sbfres files
@@ -86,6 +87,7 @@ class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator, ExportHelper):
         Path(f'{Data.data_dir}\\cache.json').write_text(json.dumps({}))
 
         print('Install Complete! Please restart Blender before continuing.')
+        bpy.ops.wm.console_toggle()
 
         return {'FINISHED'}
 
