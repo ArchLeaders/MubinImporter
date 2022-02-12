@@ -2,6 +2,7 @@
 error.txt
 cache.json
 exported.json
+export/
 bin/
 obj/
 data/
