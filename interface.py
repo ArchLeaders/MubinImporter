@@ -74,7 +74,7 @@ class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator, ExportHelper):
         # Download json data
         print('Downloading json data...')
         file_bytes = requests.get('https://raw.githubusercontent.com/ArchLeaders/MubinImporter/master/dist/exported.bin')
-        Path(f'{Data.data_dir}\\extracted.json').write_bytes(file_bytes.content)
+        Path(f'{Data.data_dir}\\exported.json').write_bytes(file_bytes.content)
 
         # Export sbfres files
         print('Extracting sbfres data... (this will take a while)')
