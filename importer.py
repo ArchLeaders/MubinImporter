@@ -78,10 +78,10 @@ def import_actor(actor: dict, mod_folder: str, import_shader: bool = False):
     bone = None
     if armature.type == 'ARMATURE':
         for child_bone in armature.pose.bones:
-            if child_bone.name is 'Root':
+            if child_bone.name == 'Root':
                 bone = child_bone
                 break
-            elif child_bone.name is 'Model':
+            elif child_bone.name == 'Model':
                 bone = child_bone
                 break
             else:
