@@ -77,12 +77,13 @@ class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator, ExportHelper):
 
         # Export sbfres files
         print('Extracting sbfres data... (this will take a while)')
-        subprocess.run(f'{Data.data_dir}\\lib\\ModelExtracter.exe', cwd=f'{Data.data_dir}')
+        subprocess.run(f'cmd.exe /c "{Data.data_dir}\\lib\\ModelExtracter.exe"', cwd=f'{Data.data_dir}')
         shutil.move(f'{Data.data_dir}\\export', f'{Data.data_dir}\\exported')
 
         # Write cache file
-        os.makedirs(f'{Data.data_dir}\\cache')
-        Path(f'{Data.data_dir}\\cache.json').write_bytes(json.dumps({}))
+        if not Path(f'{Data.data_dir}\\cache').is_dir():
+            Path(f'{Data.data_dir}\\cache').mkdir()
+        Path(f'{Data.data_dir}\\cache.json').write_text(json.dumps({}))
 
         print('Install Complete! Please restart Blender before continuing.')
 
