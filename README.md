@@ -7,7 +7,7 @@ If you wish to use the BotW Shader option, you must contact Moonling and ask per
 
 ## Setup
 
-1. Download the [latest release]() and install it with blender.
+1. Download the [latest release](https://github.com/ArchLeaders/MubinImporter/releases/latest) and install it with blender.
 
 2. Once installed, go to the Tools panel and click the 'Install Dependencies' button.<br>
 A console will appear and log the changes; it will take quite a while to complete.
