@@ -5,8 +5,10 @@ from pathlib import Path
 from .io.system import Data
 from .io.oead import OpenOead
 
-cache = Data.cache
+Data.init()
+
 data_dir = Data.data_dir
+cache = Data.cache
 exported = Data.exported
 
 def import_actor(actor: dict, mod_folder: str, import_shader: bool = False):
@@ -126,7 +128,7 @@ def import_actor(actor: dict, mod_folder: str, import_shader: bool = False):
 
             # Get material
             if base_color is not None:
-                bpy.ops.wm.append(filename='MAT', directory=str(Data.data_dir).replace("\\", "/") + '/shader.blend\\Material\\')
+                bpy.ops.wm.append(filename='MAT', directory=str(data_dir).replace("\\", "/") + '/shader.blend\\Material\\')
                 mat = bpy.data.materials.get('MAT')
                 mat.name = name
                 for node in mat.node_tree.nodes:
@@ -134,7 +136,7 @@ def import_actor(actor: dict, mod_folder: str, import_shader: bool = False):
                         node.image = base_color
                         break
             else:
-                bpy.ops.wm.append(filename='MAT_GRAY', directory=str(Data.data_dir).replace("\\", "/") + '/shader.blend\\Material\\')
+                bpy.ops.wm.append(filename='MAT_GRAY', directory=str(data_dir).replace("\\", "/") + '/shader.blend\\Material\\')
                 mat = bpy.data.materials.get('MAT_GRAY')
                 mat.name = name
             
@@ -144,10 +146,10 @@ def import_actor(actor: dict, mod_folder: str, import_shader: bool = False):
                 child.data.materials.append(mat)
 
     # Rename armature
-    armature.name = f"{actor['UnitConfigName']} ({actor['HashId']})"
+    armature.name = f"{name} ({actor['HashId']})"
 
     # return complete
-    print(f'Imported {actor["UnitConfigName"]}: {actor["HashId"]} successfully.')
+    print(f'Imported {name}: {actor["HashId"]} successfully.')
     return
 
 def import_mubin(mubin :Path, context, import_shader: bool = False):
@@ -193,10 +195,10 @@ def import_mubin(mubin :Path, context, import_shader: bool = False):
                 print(f'Could not import {actor["UnitConfigName"]}\n{traceback.format_exc()}')
 
                 error = ''
-                if Path('error.txt').is_file():
-                    error = Path('error.txt').read_text()
+                if Path(f'{data_dir}\\error.txt').is_file():
+                    error = Path(f'{data_dir}\\error.txt').read_text()
 
-                Path('error.txt').write_text(f'{error}Could not import {actor["UnitConfigName"]}\n{traceback.format_exc()}\n\n{"- " * 30}\n\n')
+                Path(f'{data_dir}\\error.txt').write_text(f'{error}Could not import {actor["UnitConfigName"]}\n{traceback.format_exc()}{"- " * 30}\n')
 
                 # if input() == 'exit':
                 #     return
