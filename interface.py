@@ -1,3 +1,4 @@
+from tabnanny import filename_only
 import bpy
 import json
 import os
@@ -6,7 +7,7 @@ import subprocess
 import shutil
 import requests
 import zipfile
-from bpy_extras.io_utils import ImportHelper
+from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.props import StringProperty, BoolProperty
 from pathlib import Path
 from .importer import import_mubin
@@ -29,12 +30,14 @@ class IMPORT_MUBIN_SCENE_OT_smubin(bpy.types.Operator, ImportHelper):
 
         return {'FINISHED'}
 
-class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator, ImportHelper):
+class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator, ExportHelper):
     """Installs the Mubin Importer dependencies."""
     bl_idname = 'mubin_importer.deps'
     bl_label = 'Install Dependencies'
 
-    filter_glob: StringProperty( description='Browse for the Mubin Importer data directory.', options={'HIDDEN'}, subtype='DIR_PATH' )
+    filename_only = 0
+    filename_ext = '.ini'
+    filter_glob: StringProperty(default='*.ini', options={'HIDDEN'}, subtype= 'DIR_PATH')
 
     def execute(self, context):
         # Show console
@@ -42,43 +45,41 @@ class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator, ImportHelper):
 
         # Set app data information
         print('Setting up configuration...')
-        config = Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer\\config.json')
-        config_data = { 'data_dir': self.filename }
-
-        # Write config file
-        config.write_text(json.dumps(config_data, indent=4))
+        if not Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer').is_dir():
+            Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer').mkdir()
+        Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer\\config.json').write_text(json.dumps({ 'data_dir': self.filepath }, indent=4))
+        Data.data_dir = Path(self.filepath).parent
 
         # Install oead
         print('Installing oead...')
-        python_exe = os.path.join(sys.prefix, 'bin', 'python.exe')
+        python_exe = Path(sys.prefix, 'bin', 'python.exe')
         subprocess.call([python_exe, "-m", "pip", "install", "oead"])
 
         # Download lib
         print('Downloading C# binaries...')
         file_bytes = requests.get('https://github.com/ArchLeaders/MubinImporter/raw/master/dist/lib.zip')
-        Path(f'{Data.data_dir}\\lib.zip').write_bytes(file_bytes)
+        Path(f'{Data.data_dir}\\lib.zip').write_bytes(file_bytes.content)
 
         print('Extracting C# binaries...')
-        os.makedirs(f'{Data.data_dir}\\lib')
+        if not Path(f'{Data.data_dir}\\lib').is_dir():
+            Path(f'{Data.data_dir}\\lib').mkdir
         with zipfile.ZipFile(f'{Data.data_dir}\\lib.zip', 'r') as zip_ref:
             zip_ref.extractall(f'{Data.data_dir}\\lib')
+        Path(f'{Data.data_dir}\\lib.zip').unlink()
 
         # Download json data
         print('Downloading json data...')
         file_bytes = requests.get('https://github.com/ArchLeaders/MubinImporter/raw/master/dist/extracted.bin')
-        Path(f'{Data.data_dir}\\extracted.json').write_bytes(file_bytes)
+        Path(f'{Data.data_dir}\\extracted.json').write_bytes(file_bytes.content)
 
         # Export sbfres files
         print('Extracting sbfres data... (this will take a while)')
-        subprocess.run(f'{Data.data_dir}\\lib\\ModelExtracter.exe')
-        shutil.move(f'.\\export', f'{Data.data_dir}\\exported')
+        subprocess.run(f'{Data.data_dir}\\lib\\ModelExtracter.exe', cwd=f'{Data.data_dir}')
+        shutil.move(f'{Data.data_dir}\\export', f'{Data.data_dir}\\exported')
 
         # Write cache file
         os.makedirs(f'{Data.data_dir}\\cache')
         Path(f'{Data.data_dir}\\cache.json').write_bytes(json.dumps({}))
-
-        # print initializing
-        Data.init()
 
         return {'FINISHED'}
 
@@ -89,6 +90,8 @@ class TOOL_PT_MubinImporter(bpy.types.Panel):
     bl_region_type = "UI"
     bl_context = "objectmode"
     bl_label = "Mubin Importer"
+
+    data_dir: StringProperty(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer')
 
     def draw(self, context):
         self.layout.operator('mubin_importer.scene')
