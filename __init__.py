@@ -12,6 +12,15 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import bpy
+import os
+import subprocess
+import sys
+
+# install oead
+python_exe = os.path.join(sys.prefix, 'bin', 'python.exe')
+subprocess.call([python_exe, "-m", "pip", "install", "oead"])
+
+from pathlib import Path
 from .interface import IMPORT_MUBIN_DEPS_OT_install, IMPORT_MUBIN_SCENE_OT_smubin, TOOL_PT_MubinImporter
 
 bl_info = {
@@ -24,6 +33,12 @@ bl_info = {
     "warning" : "",
     "category" : "Generic"
 }
+
+# Install deps
+if not Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer').is_dir():
+    Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer').mkdir()
+if not Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer\\config.json').is_file():
+    Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer\\config.json').write_text('{}')
 
 classes = [
     IMPORT_MUBIN_DEPS_OT_install,

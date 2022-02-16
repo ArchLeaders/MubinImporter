@@ -5,13 +5,7 @@ from pathlib import Path
 from .io.system import Data
 from .io.oead import OpenOead
 
-Data.init()
-
-data_dir = Data.data_dir
-cache = Data.cache
-exported = Data.exported
-
-def import_actor(actor: dict, mod_folder: str, import_shader: bool = False):
+def import_actor(actor: dict, mod_folder: str, import_shader: bool = False, cache = {}, exported = {}, data_dir = ''):
     """Imports a mubin actor entry using the cached models and relative sbfres files."""
 
     name = actor['UnitConfigName']
@@ -153,6 +147,10 @@ def import_actor(actor: dict, mod_folder: str, import_shader: bool = False):
     return
 
 def import_mubin(mubin :Path, context, import_shader: bool = False):
+    Data.init()
+    data_dir = Data.data_dir
+    cache = Data.cache
+    exported = Data.exported
     data = OpenOead.from_path(mubin)
 
     content = ''
@@ -179,7 +177,7 @@ def import_mubin(mubin :Path, context, import_shader: bool = False):
                     context.view_layer.active_layer_collection = context.view_layer.layer_collection.children["Far LOD"]
 
                     # Import actor
-                    import_actor(actor, f'{content}..\\', import_shader=import_shader)
+                    import_actor(actor, f'{content}..\\', import_shader=import_shader, cache=cache, exported=exported, data_dir=data_dir)
                 else:
                     # Create Far LOD collection
                     if 'Actors' not in context.blend_data.collections:
@@ -190,7 +188,7 @@ def import_mubin(mubin :Path, context, import_shader: bool = False):
                     context.view_layer.active_layer_collection = context.view_layer.layer_collection.children["Actors"]
 
                     # Import actor
-                    import_actor(actor, f'{content}..\\', import_shader=import_shader)
+                    import_actor(actor, f'{content}..\\', import_shader=import_shader, cache=cache, exported=exported, data_dir=data_dir)
             except:
                 print(f'Could not import {actor["UnitConfigName"]}\n{traceback.format_exc()}')
 

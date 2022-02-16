@@ -51,7 +51,7 @@ class IMPORT_MUBIN_DEPS_OT_install(bpy.types.Operator, ExportHelper):
         print('Setting up configuration...')
         if not Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer').is_dir():
             Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer').mkdir()
-        Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer\\config.json').write_text(json.dumps({ 'data_dir': Path(self.filepath).parent }, indent=4))
+        Path(f'{os.environ["LOCALAPPDATA"]}\\mubin_importer\\config.json').write_text(json.dumps({'data_dir': str(Path(self.filepath).parent)},indent=4))
         Data.data_dir = Path(self.filepath).parent
 
         # Install oead
